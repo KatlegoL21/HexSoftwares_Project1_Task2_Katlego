@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Music Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="music-player">
+        <h1 class="title">🎵 Chill Music Player</h1>
+        <div class="playlist">
+            <ul id="song-list"></ul>
+        </div>
+        <div class="controls">
+            <button id="prev">⏮️</button>
+            <button id="play-pause">▶️</button>
+            <button id="next">⏭️</button>
+        </div>
+        <div class="volume-control">
+            <label for="volume">Volume:</label>
+            <input type="range" id="volume" min="0" max="1" step="0.1">
+        </div>
+        <div class="progress">
+            <span id="current-time">0:00</span>
+            <input type="range" id="progress-bar" min="0" max="100" value="0">
+            <span id="total-time">0:00</span>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1c1c1e; 
+    color: #f5f5f5; 
+}
+
+.music-player {
+    background: #2c2c2e; 
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    width: 350px;
+    text-align: center;
+}
+
+.title {
+    font-size: 24px;
+    color: #00aced; 
+    margin-bottom: 20px;
+}
+
+.playlist ul {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #3a3a3c;
+    border-radius: 10px;
+    background: #3a3a3c; 
+}
+
+.playlist ul li {
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.playlist ul li:hover {
+    background-color: #00aced;
+    color: #fff;
+}
+
+.controls button {
+    padding: 10px;
+    margin: 5px;
+    background-color: #00aced; 
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.controls button:hover {
+    background-color: #007bb5; 
+}
+
+.volume-control input[type="range"], 
+.progress input[type="range"] {
+    width: 100%;
+}
+
+.progress {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+const songs = [
+    { title: "Let's Get It On", artist: "Marvin Gaye", file: "songs/lets_get_it_on.mp3" },
+    { title: "Ain't No Mountain High Enough", artist: "Marvin Gaye & Tammi Terrell", file: "songs/aint_no_mountain.mp3" },
+    { title: "Rock With You", artist: "Michael Jackson", file: "songs/rock_with_you.mp3" },
+    { title: "End of the Road", artist: "Boyz II Men", file: "songs/end_of_the_road.mp3" },
+    { title: "Superstition", artist: "Stevie Wonder", file: "songs/superstition.mp3" },
+    { title: "Crazy Story", artist: "King Von", file: "songs/crazy_story.mp3" },
+    { title: "Smells Like Teen Spirit", artist: "Nirvana", file: "songs/smells_like_teen_spirit.mp3" },
+    { title: "Blinding Lights", artist: "The Weeknd", file: "songs/blinding_lights.mp3" },
+    { title: "Shape of You", artist: "Ed Sheeran", file: "songs/shape_of_you.mp3" },
+    { title: "River Flows in You", artist: "Yiruma", file: "songs/river_flows_in_you.mp3" }
+];
+
+const songList = document.getElementById("song-list");
+const playPauseButton = document.getElementById("play-pause");
+const prevButton = document.getElementById("prev");
+const nextButton = document.getElementById("next");
+const volumeControl = document.getElementById("volume");
+const progressBar = document.getElementById("progress-bar");
+const currentTimeDisplay = document.getElementById("current-time");
+const totalTimeDisplay = document.getElementById("total-time");
+
+let audio = new Audio();
+let currentSongIndex = 0;
+
+// Load playlist
+songs.forEach((song, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${song.title} - ${song.artist}`;
+    li.dataset.index = index;
+    li.addEventListener("click", () => loadSong(index));
+    songList.appendChild(li);
+});
+
+// Load selected song
+function loadSong(index) {
+    currentSongIndex = index;
+    audio.src = songs[index].file;
+    playPauseButton.textContent = "▶️";
+    audio.pause();
+
+    // Update total time when metadata is loaded
+    audio.addEventListener("loadedmetadata", () => {
+        totalTimeDisplay.textContent = formatTime(audio.duration);
+    });
+
+    updateUI();
+}
+
+// Update UI
+function updateUI() {
+    const song = songs[currentSongIndex];
+    progressBar.value = 0;
+    currentTimeDisplay.textContent = "0:00";
+}
+
+// Play/Pause button
+playPauseButton.addEventListener("click", () => {
+    if (audio.paused) {
+        audio.play();
+        playPauseButton.textContent = "⏸️";
+    } else {
+        audio.pause();
+        playPauseButton.textContent = "▶️";
+    }
+});
+
+// Navigation buttons
+prevButton.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+    audio.play();
+});
+
+nextButton.addEventListener("click", () => {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+    audio.play();
+});
+
+
+volumeControl.addEventListener("input", (e) => {
+    audio.volume = e.target.value;
+});
+
+
+audio.addEventListener("timeupdate", () => {
+    progressBar.value = (audio.currentTime / audio.duration) * 100;
+    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+});
+
+progressBar.addEventListener("input", (e) => {
+    audio.currentTime = (e.target.value / 100) * audio.duration;
+});
+
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+}
+
+
+loadSong(currentSongIndex);
